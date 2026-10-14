@@ -1,0 +1,345 @@
+{
+  "Version": "CHAT-2022-11-30",
+  "AccountId": "123456789012",
+  "Channel": "CHAT",
+  "JobStatus": "COMPLETED",
+  "LanguageCode": "en-ZA",
+  "CustomerMetadata": {
+    "InputS3Uri": "s3://example-connect-bucket/connect/example-instance/ChatTranscripts/2026/10/14/7efb27f8-db31-4e6b-a90a-60f93262dac3_20261014T12:13_UTC.json",
+    "ContactId": "7efb27f8-db31-4e6b-a90a-60f93262dac3",
+    "InstanceId": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+  },
+  "ChatTranscriptVersion": "2019-08-26",
+  "ContentMetadata": {
+    "Output": "Raw"
+  },
+  "Transcript": [
+    {
+      "AbsoluteTime": "2026-10-14T12:13:07.410Z",
+      "ContentType": "application/vnd.amazonaws.connect.event.participant.joined",
+      "Id": "01a13a54-a1d2-7a96-af23-8e2d8def1d1f",
+      "Type": "EVENT",
+      "ParticipantId": "80ed8b8f-e359-407b-b722-165e8df88a55",
+      "DisplayName": "Customer",
+      "ParticipantRole": "CUSTOMER"
+    },
+    {
+      "AbsoluteTime": "2026-10-14T12:13:09.499Z",
+      "Content": "Hello, thanks for contacting us. This is an example of what the Amazon Connect virtual contact center can enable you to do.",
+      "ContentType": "text/plain",
+      "Id": "01a13a54-a9fb-78d4-9555-24d3f1f1a399",
+      "Type": "MESSAGE",
+      "ParticipantId": "10510cee-f3f6-4a2e-a1b7-4a8450e6fcfe",
+      "DisplayName": "SYSTEM_MESSAGE",
+      "ParticipantRole": "SYSTEM"
+    },
+    {
+      "AbsoluteTime": "2026-10-14T12:13:11.168Z",
+      "Content": "The time in queue is less than 5 minutes.",
+      "ContentType": "text/plain",
+      "Id": "01a13a54-b080-7fd3-be5f-f5fbe821a872",
+      "Type": "MESSAGE",
+      "ParticipantId": "10510cee-f3f6-4a2e-a1b7-4a8450e6fcfe",
+      "DisplayName": "SYSTEM_MESSAGE",
+      "ParticipantRole": "SYSTEM"
+    },
+    {
+      "AbsoluteTime": "2026-10-14T12:13:12.443Z",
+      "Content": "You are now being placed in queue to chat with an agent.",
+      "ContentType": "text/plain",
+      "Id": "01a13a54-b57b-70b2-9719-9c810ff04751",
+      "Type": "MESSAGE",
+      "ParticipantId": "10510cee-f3f6-4a2e-a1b7-4a8450e6fcfe",
+      "DisplayName": "SYSTEM_MESSAGE",
+      "ParticipantRole": "SYSTEM"
+    },
+    {
+      "AbsoluteTime": "2026-10-14T12:13:49.956Z",
+      "Content": "Hello",
+      "ContentType": "text/markdown",
+      "Id": "01a13a55-4804-7934-be00-7f03325adfa0",
+      "Type": "MESSAGE",
+      "ParticipantId": "80ed8b8f-e359-407b-b722-165e8df88a55",
+      "DisplayName": "Customer",
+      "ParticipantRole": "CUSTOMER"
+    },
+    {
+      "AbsoluteTime": "2026-10-14T12:14:58.383Z",
+      "ContentType": "application/vnd.amazonaws.connect.event.participant.joined",
+      "Id": "01a13a56-534f-7fb1-8722-93801fb1de39",
+      "Type": "EVENT",
+      "ParticipantId": "e5c940b0-6619-4e61-8da5-07717027275a",
+      "DisplayName": "Agent",
+      "ParticipantRole": "AGENT"
+    },
+    {
+      "AbsoluteTime": "2026-10-14T12:15:04.022Z",
+      "Content": "Hello",
+      "ContentType": "text/markdown",
+      "Id": "01a13a56-6956-7d02-99ac-c1901b728434",
+      "Type": "MESSAGE",
+      "ParticipantId": "e5c940b0-6619-4e61-8da5-07717027275a",
+      "DisplayName": "Agent",
+      "ParticipantRole": "AGENT"
+    },
+    {
+      "AbsoluteTime": "2026-10-14T12:15:16.738Z",
+      "Content": "Hi ythere",
+      "ContentType": "text/markdown",
+      "Id": "01a13a56-9b02-77df-abb5-f76293e2c36e",
+      "Type": "MESSAGE",
+      "ParticipantId": "e5c940b0-6619-4e61-8da5-07717027275a",
+      "DisplayName": "Agent",
+      "ParticipantRole": "AGENT"
+    },
+    {
+      "AbsoluteTime": "2026-10-14T12:15:25.137Z",
+      "Content": "I am lost",
+      "ContentType": "text/markdown",
+      "Id": "01a13a56-bbd1-7fc6-af22-a71f3d9ccfd9",
+      "Type": "MESSAGE",
+      "ParticipantId": "80ed8b8f-e359-407b-b722-165e8df88a55",
+      "DisplayName": "Customer",
+      "ParticipantRole": "CUSTOMER"
+    },
+    {
+      "AbsoluteTime": "2026-10-14T12:15:44.996Z",
+      "Content": "WHere are you",
+      "ContentType": "text/markdown",
+      "Id": "01a13a57-0964-7cd6-b7f0-c80835f496e6",
+      "Type": "MESSAGE",
+      "ParticipantId": "e5c940b0-6619-4e61-8da5-07717027275a",
+      "DisplayName": "Agent",
+      "ParticipantRole": "AGENT"
+    },
+    {
+      "AbsoluteTime": "2026-10-14T12:15:53.687Z",
+      "Content": "In th eleft panel",
+      "ContentType": "text/markdown",
+      "Id": "01a13a57-2b57-754f-b115-32115a0980cb",
+      "Type": "MESSAGE",
+      "ParticipantId": "80ed8b8f-e359-407b-b722-165e8df88a55",
+      "DisplayName": "Customer",
+      "ParticipantRole": "CUSTOMER"
+    },
+    {
+      "AbsoluteTime": "2026-10-14T12:17:02.470Z",
+      "Content": "My order is late and I’m annoyed",
+      "ContentType": "text/markdown",
+      "Id": "01a13a58-3806-7a6f-88cc-42c468bf497c",
+      "Type": "MESSAGE",
+      "ParticipantId": "80ed8b8f-e359-407b-b722-165e8df88a55",
+      "DisplayName": "Customer",
+      "ParticipantRole": "CUSTOMER"
+    },
+    {
+      "AbsoluteTime": "2026-10-14T12:17:20.386Z",
+      "Content": "Sorry fo rthat I can assist",
+      "ContentType": "text/markdown",
+      "Id": "01a13a58-7e02-7970-b11a-9733062a5616",
+      "Type": "MESSAGE",
+      "ParticipantId": "e5c940b0-6619-4e61-8da5-07717027275a",
+      "DisplayName": "Agent",
+      "ParticipantRole": "AGENT"
+    },
+    {
+      "AbsoluteTime": "2026-10-14T12:17:58.165Z",
+      "ContentType": "application/vnd.amazonaws.connect.event.participant.left",
+      "Id": "01a13a59-1195-74b0-8d2f-7685f979f3be",
+      "Type": "EVENT",
+      "ParticipantId": "e5c940b0-6619-4e61-8da5-07717027275a",
+      "DisplayName": "Agent",
+      "ParticipantRole": "AGENT"
+    }
+  ],
+  "Categories": {
+    "MatchedCategories": [],
+    "MatchedDetails": {}
+  },
+  "Participants": [
+    {
+      "ParticipantId": "80ed8b8f-e359-407b-b722-165e8df88a55",
+      "ParticipantRole": "CUSTOMER"
+    },
+    {
+      "ParticipantId": "10510cee-f3f6-4a2e-a1b7-4a8450e6fcfe",
+      "ParticipantRole": "SYSTEM"
+    },
+    {
+      "ParticipantId": "e5c940b0-6619-4e61-8da5-07717027275a",
+      "ParticipantRole": "AGENT"
+    }
+  ],
+  "ConversationCharacteristics": {
+    "ResponseTime": {
+      "AgentGreetingTimeMillis": 5639,
+      "AutomatedInteractionGreetingTimeMillis": 2089,
+      "DetailsByParticipantRole": {
+        "AGENT": {
+          "Average": {
+            "ValueMillis": 18888
+          },
+          "Maximum": {
+            "ValueMillis": 19859,
+            "TranscriptItems": [
+              {
+                "Id": "01a13a57-0964-7cd6-b7f0-c80835f496e6"
+              }
+            ]
+          }
+        },
+        "CUSTOMER": {
+          "Average": {
+            "ValueMillis": 18201
+          },
+          "Maximum": {
+            "ValueMillis": 37513,
+            "TranscriptItems": [
+              {
+                "Id": "01a13a55-4804-7934-be00-7f03325adfa0"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "ContactSummary": {
+      "SummaryItemsDetected": [
+        {
+          "IssuesDetected": [],
+          "OutcomesDetected": [],
+          "ActionItemsDetected": []
+        }
+      ]
+    },
+    "Sentiment": {
+      "OverallSentiment": {
+        "DetailsByInteraction": {
+          "DetailsByParticipantRole": {
+            "CUSTOMER": {
+              "WithAgent": -3.3,
+              "WithoutAgent": 0
+            }
+          }
+        },
+        "DetailsByParticipantRole": {
+          "AGENT": 1.3,
+          "CUSTOMER": -2.5,
+          "SYSTEM": 2.5
+        }
+      },
+      "SentimentShift": {
+        "DetailsByInteraction": {
+          "DetailsByParticipantRole": {
+            "CUSTOMER": {
+              "WithAgent": {
+                "BeginScore": 0,
+                "EndScore": -5
+              },
+              "WithoutAgent": {
+                "BeginScore": 0,
+                "EndScore": 0
+              }
+            }
+          }
+        },
+        "DetailsByParticipantRole": {
+          "AGENT": {
+            "BeginScore": 0,
+            "EndScore": 5
+          },
+          "CUSTOMER": {
+            "BeginScore": 0,
+            "EndScore": -2.5
+          },
+          "SYSTEM": {
+            "BeginScore": 2.5,
+            "EndScore": 0
+          }
+        }
+      },
+      "DetailsByTranscriptItemGroup": [
+        {
+          "ParticipantRole": "CUSTOMER",
+          "ProgressiveScore": 0,
+          "Sentiment": "NEUTRAL",
+          "TranscriptItems": [
+            {
+              "Id": "01a13a55-4804-7934-be00-7f03325adfa0"
+            }
+          ]
+        },
+        {
+          "ParticipantRole": "CUSTOMER",
+          "ProgressiveScore": -5,
+          "Sentiment": "NEGATIVE",
+          "TranscriptItems": [
+            {
+              "Id": "01a13a56-bbd1-7fc6-af22-a71f3d9ccfd9"
+            }
+          ]
+        },
+        {
+          "ParticipantRole": "CUSTOMER",
+          "ProgressiveScore": 0,
+          "Sentiment": "NEUTRAL",
+          "TranscriptItems": [
+            {
+              "Id": "01a13a57-2b57-754f-b115-32115a0980cb"
+            }
+          ]
+        },
+        {
+          "ParticipantRole": "CUSTOMER",
+          "ProgressiveScore": -5,
+          "Sentiment": "NEGATIVE",
+          "TranscriptItems": [
+            {
+              "Id": "01a13a58-3806-7a6f-88cc-42c468bf497c"
+            }
+          ]
+        },
+        {
+          "ParticipantRole": "AGENT",
+          "ProgressiveScore": 0,
+          "Sentiment": "NEUTRAL",
+          "TranscriptItems": [
+            {
+              "Id": "01a13a56-6956-7d02-99ac-c1901b728434"
+            }
+          ]
+        },
+        {
+          "ParticipantRole": "AGENT",
+          "ProgressiveScore": 0,
+          "Sentiment": "NEUTRAL",
+          "TranscriptItems": [
+            {
+              "Id": "01a13a56-9b02-77df-abb5-f76293e2c36e"
+            }
+          ]
+        },
+        {
+          "ParticipantRole": "AGENT",
+          "ProgressiveScore": 0,
+          "Sentiment": "NEUTRAL",
+          "TranscriptItems": [
+            {
+              "Id": "01a13a57-0964-7cd6-b7f0-c80835f496e6"
+            }
+          ]
+        },
+        {
+          "ParticipantRole": "AGENT",
+          "ProgressiveScore": 5,
+          "Sentiment": "POSITIVE",
+          "TranscriptItems": [
+            {
+              "Id": "01a13a58-7e02-7970-b11a-9733062a5616"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

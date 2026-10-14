@@ -1,0 +1,41 @@
+{
+  "Version": "CHAT-2022-11-30",
+  "ChatTranscriptVersion": "2019-08-26",
+  "AccountId": "123456789012",
+  "Channel": "CHAT",
+  "ContentMetadata": { "Output": "Raw" },
+  "JobStatus": "COMPLETED",
+  "LanguageCode": "en-US",
+  "CustomerMetadata": {
+    "ContactId": "b49644f6-672f-445c-b209-f76b36482830",
+    "InputS3Uri": "path to the json file in s3",
+    "InstanceId": "f23fc323-3d6d-48aa-95dc-EXAMPLE012"
+  },
+  "Participants": [
+    { "ParticipantId": "e9b36a6d-12aa-4c21-9745-1881648ecfc8", "ParticipantRole": "CUSTOMER" },
+    { "ParticipantId": "2b2288b4-ff6e-4996-8d8e-260fd5a8ac02", "ParticipantRole": "SYSTEM" },
+    { "ParticipantId": "f36a545d-67b2-4fd4-89fb-896136b609a7", "ParticipantRole": "AGENT" }
+  ],
+  "Categories": { "MatchedCategories": [] },
+  "Transcript": [
+    {
+      "AbsoluteTime": "2022-10-27T03:31:50.735Z",
+      "ContentType": "application/vnd.amazonaws.connect.event.participant.joined",
+      "DisplayName": "John",
+      "Id": "740c494d-9df7-4400-91c0-3e4df33922c8",
+      "ParticipantId": "e9b36a6d-12aa-4c21-9745-1881648ecfc8",
+      "ParticipantRole": "CUSTOMER",
+      "Type": "EVENT"
+    },
+    {
+      "AbsoluteTime": "2022-10-27T03:32:03.462Z",
+      "Content": "Hello, thanks for reaching Example Corp. This is Jane. How may I help you?",
+      "ContentType": "text/markdown",
+      "DisplayName": "Jane",
+      "Id": "e4949dd1-aaa1-4fbd-84e7-65c95b2d3d9a",
+      "ParticipantId": "f36a545d-67b2-4fd4-89fb-896136b609a7",
+      "ParticipantRole": "AGENT",
+      "Type": "MESSAGE"
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "transcripts": [
+    {
+      "channel": "0",
+      "participant": { "purpose": "agent", "userId": "agent-123" },
+      "alternatives": [
+        {
+          "transcript": "Thanks for calling, how can I help you today?",
+          "confidence": 0.94,
+          "words": [
+            { "word": "Thanks", "startTimeMs": 500, "endTimeMs": 700 },
+            { "word": "today?", "startTimeMs": 2900, "endTimeMs": 3200 }
+          ]
+        }
+      ]
+    },
+    {
+      "channel": "1",
+      "participant": { "purpose": "customer" },
+      "alternatives": [
+        {
+          "transcript": "I never received my refund from last week.",
+          "confidence": 0.89,
+          "words": [
+            { "word": "I", "startTimeMs": 3400, "endTimeMs": 3500 },
+            { "word": "week.", "startTimeMs": 5900, "endTimeMs": 6100 }
+          ]
+        }
+      ]
+    }
+  ],
+  "analytics": {
+    "sentiment": null,
+    "topics": null
+  }
+}
