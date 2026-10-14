@@ -1,25 +1,27 @@
 # contact-center-conversation-bridge
 
-Turns a speaker-attributed transcript from a contact-center platform, agent,
-customer, agent, customer, into one plain, vendor-agnostic JSON shape, and
-forwards it to a webhook you control.
+Takes a speaker-attributed transcript from a contact-center platform (agent,
+customer, agent, customer), turns it into one plain, vendor-agnostic JSON shape,
+and forwards it to a webhook you control.
 
 ## Why this exists
 
-Amazon Connect Contact Lens, Genesys Cloud, NICE Enlighten, and most of the
-rest of the enterprise contact-center analytics market do the same three
-things: produce a diarized transcript, tag sentiment and categories, and
-have zero concept of any channel outside themselves. Every one of them also
-keeps the transcript in its own shape and the customer's identity somewhere
-else entirely, joined by a contact ID.
+I run Wappari, a platform where every conversation a business has with a
+customer ends up in one thread per customer, whatever channel it came in on.
+Businesses that also run a contact center on Amazon Connect or Genesys have
+their calls and chats locked inside that platform. Each vendor keeps the
+transcript in its own shape, and links it to the customer only through a
+contact id.
 
-This tool is the small, generic piece in between: an adapter per platform
-fetches and maps its vendor's transcript into one shared shape, and a single
-shared pipeline forwards it to a webhook. It has no opinion about what
-happens after that, no CRM logic, no business rules, that's the receiving
-webhook's job.
+This bridge is the small piece in between. An adapter per platform reads the
+vendor's transcript and turns it into the same agent and customer turns, and
+one shared path forwards it to a webhook. What happens after that is up to the
+receiver. In my case, Wappari adds it to the customer's existing conversation.
 
 Arno Hart · [LinkedIn](https://www.linkedin.com/in/arnohart/)
+
+Built with Claude Code. The problem, the design decisions and the testing
+against a live Amazon Connect instance are mine.
 
 ## Supported sources
 
@@ -71,18 +73,18 @@ POST /webhook/amazon-connect          your own trigger + client.ts's fetches
 See [docs/eventbridge-setup.md](docs/eventbridge-setup.md) for the Amazon
 Connect AWS-side wiring, and
 [src/adapters/genesysCloud/README.md](src/adapters/genesysCloud/README.md)
-for why Genesys Cloud's integration shape is genuinely different, not just
-differently documented.
+for why Genesys Cloud's integration works differently, not just looks
+different in the documentation.
 
 ## What it deliberately does not do
 
 - **It does not resolve a business account, customer identity, or anything
   domain-specific.** No platform in this space has a concept of "which
-  business owns this call" beyond its own tenant, that mapping only makes
+  business owns this call" beyond its own tenant. That mapping only makes
   sense inside whatever system receives the webhook.
 - **It does not force every vendor into the same trigger shape.** Amazon
   Connect pushes, Genesys Cloud you have to pull. The architecture reflects
-  that honestly, see `docs/adding-a-source.md`.
+  that; see `docs/adding-a-source.md`.
 - **It does not ship confident-looking code against schemas nobody here has
   verified.** Where a vendor's exact field names couldn't be confirmed
   against real documentation or a real payload, that's stated plainly in
@@ -257,10 +259,6 @@ function isValid(rawBody, signatureHeader, secret) {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 ```
-
-## Writing rules
-
-All text in this project follows [docs/writing-rules.md](docs/writing-rules.md): no em or en dashes, and no hyphens used as punctuation or decoration. A test enforces it.
 
 ## Adding a new source
 
