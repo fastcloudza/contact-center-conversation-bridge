@@ -42,7 +42,7 @@ await ingestConversation(config, logger, transcript, identity, "your_source_name
 
 That's the entire contract. Everything upstream of it, how you learn a
 conversation is ready, how you authenticate to the vendor, how you map
-their speaker labels to ours, is genuinely vendor-specific and lives inside
+their speaker labels to ours, is vendor-specific and lives inside
 your adapter's own folder.
 
 ## Two different trigger shapes, pick whichever your vendor actually is
