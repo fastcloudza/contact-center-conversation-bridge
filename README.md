@@ -20,9 +20,6 @@ receiver. In my case, Wappari adds it to the customer's existing conversation.
 
 Arno Hart · [LinkedIn](https://www.linkedin.com/in/arnohart/)
 
-Built with Claude Code. The problem, the design decisions and the testing
-against a live Amazon Connect instance are mine.
-
 ## Supported sources
 
 | Source | Status |
