@@ -1,0 +1,30 @@
+{
+  "type": "post_call_transcription",
+  "event_timestamp": 1790000500,
+  "some_future_top_level_key": { "anything": [1, 2, 3] },
+  "data": {
+    "agent_id": "synthetic_agent_001",
+    "conversation_id": "synthetic_conv_extrakeys_001",
+    "status": "done",
+    "a_new_field_we_do_not_know": "value",
+    "transcript": [
+      { "role": "agent", "message": "Hello, welcome.", "time_in_call_secs": 0, "a_new_entry_field": true },
+      { "role": "agent", "message": null, "tool_calls": [{ "tool_name": "synthetic_lookup", "params_as_json": "{}" }], "time_in_call_secs": 2 },
+      { "role": "user", "message": "", "time_in_call_secs": 3 },
+      { "role": "agent", "tool_results": [{ "tool_name": "synthetic_lookup", "result_value": "ok" }], "time_in_call_secs": 3 },
+      { "role": "user", "message": "I need help with my invoice.", "time_in_call_secs": 6, "interrupted": false }
+    ],
+    "metadata": {
+      "start_time_unix_secs": 1790000450,
+      "call_duration_secs": 40,
+      "a_new_metadata_key": { "nested": true }
+    },
+    "conversation_initiation_client_data": {
+      "dynamic_variables": {
+        "a_list": [1, 2],
+        "an_object": { "x": 1 },
+        "customer_phone": "+12025550142"
+      }
+    }
+  }
+}

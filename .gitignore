@@ -3,3 +3,8 @@ dist/
 .env
 *.log
 .DS_Store
+elevenlabs-agent-map*.json
+*.wav
+*.mp3
+*accessKeys*
+*credentials*

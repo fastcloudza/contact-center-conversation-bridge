@@ -27,15 +27,27 @@ async function sleep(ms: number): Promise<void> {
  * on network errors or 5xx, does not retry on 4xx, that's a receiver-side
  * rejection this bridge can't fix by trying again.
  */
+/** Anything the forwarder can send: the normalized shape, or a source's own
+ *  request shape. Only the conversation id is read, for the log line. */
+export type ForwardPayload = NormalizedConversation | { call_uuid: string };
+
+export interface ForwardOptions {
+  /** Delivery attempts, default 3. */
+  maxAttempts?: number;
+  /** Value of the X-Bridge-Event header, default "conversation.normalized". */
+  event?: string;
+}
+
 export async function forwardToWebhook(
   config: Config,
-  payload: NormalizedConversation,
+  payload: ForwardPayload,
   logger: Logger,
+  options: ForwardOptions = {},
 ): Promise<void> {
   const body = JSON.stringify(payload);
   const signature = sign(body, config.OUTBOUND_WEBHOOK_SECRET);
 
-  const maxAttempts = 3;
+  const maxAttempts = options.maxAttempts ?? 3;
   let lastError: unknown;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -48,7 +60,7 @@ export async function forwardToWebhook(
         headers: {
           "Content-Type": "application/json",
           "X-Bridge-Signature": signature,
-          "X-Bridge-Event": "conversation.normalized",
+          "X-Bridge-Event": options.event ?? "conversation.normalized",
         },
         body,
         signal: controller.signal,

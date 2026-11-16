@@ -1,0 +1,31 @@
+{
+  "type": "post_call_transcription",
+  "event_timestamp": 1790000200,
+  "data": {
+    "agent_id": "synthetic_agent_001",
+    "agent_name": "Synthetic Phone Agent",
+    "conversation_id": "synthetic_conv_phone_001",
+    "status": "done",
+    "transcript": [
+      { "role": "agent", "message": "Thank you for calling. How can I help?", "time_in_call_secs": 0 },
+      { "role": "user", "message": "My internet has been down since morning.", "time_in_call_secs": 3 },
+      { "role": "agent", "message": "I am sorry to hear that. Let me log a ticket.", "time_in_call_secs": 7 }
+    ],
+    "metadata": {
+      "start_time_unix_secs": 1790000150,
+      "call_duration_secs": 61,
+      "phone_call": {
+        "direction": "inbound",
+        "agent_number": "+12025550111",
+        "external_number": "+12025550177",
+        "call_sid": "synthetic_call_sid_001"
+      }
+    },
+    "conversation_initiation_client_data": {
+      "dynamic_variables": {
+        "system__caller_id": "+12025550142",
+        "system__called_number": "+12025550111"
+      }
+    }
+  }
+}

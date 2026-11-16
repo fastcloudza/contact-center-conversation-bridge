@@ -1,8 +1,8 @@
 # contact-center-conversation-bridge
 
-Takes a speaker-attributed transcript from a contact-center platform (agent,
-customer, agent, customer), turns it into one plain, vendor-agnostic JSON shape,
-and forwards it to a webhook you control.
+Takes a speaker-attributed transcript from a contact center or conversational
+agent platform (agent, customer, agent, customer), turns it into plain agent and
+customer turns, and forwards it to a webhook you control.
 
 ## Why this exists
 
@@ -20,12 +20,21 @@ receiver. In my case, Wappari adds it to the customer's existing conversation.
 
 Arno Hart · [LinkedIn](https://www.linkedin.com/in/arnohart/)
 
+## Three sources
+
+This repository supports three sources. Each one is its own adapter with its own setup section.
+
+- **Amazon Connect (Contact Lens).** Amazon announces a finished analysis file through EventBridge and the bridge reads it from S3. See [Amazon Connect output format](#amazon-connect-output-format) and [CTR enrichment](#ctr-enrichment-optional-amazon-connect-only).
+- **Genesys Cloud.** The bridge fetches the transcript from Genesys Cloud, which you trigger yourself. See `src/adapters/genesysCloud/README.md`.
+- **ElevenLabs conversational agents.** ElevenLabs pushes each finished conversation to the bridge, which checks the signature and forwards it. See [ElevenLabs source](#elevenlabs-source).
+
 ## Supported sources
 
 | Source | Status |
 |---|---|
 | Amazon Connect (Contact Lens) | Chat: supported. Voice and email: supported, following Amazon's documented output format. See [Amazon Connect output format](#amazon-connect-output-format) |
 | Genesys Cloud (Speech and Text Analytics) | Fetch and mapping implemented against confirmed endpoints; the transcript document's internal field names are a documented best-effort guess, not verified against a live tenant; no trigger wired in, see `src/adapters/genesysCloud/README.md` |
+| ElevenLabs conversational agents | Post call webhook, verified with ElevenLabs' official SDK. Built and tested on synthetic data only, no real delivery has been captured yet. See [ElevenLabs source](#elevenlabs-source) |
 | NICE Enlighten, Verint, CallMiner, Google Cloud CCAI, Microsoft Dynamics/Azure | Not implemented, see `docs/adding-a-source.md` |
 
 ## Amazon Connect output format
@@ -67,6 +76,8 @@ POST /webhook/amazon-connect          your own trigger + client.ts's fetches
          POST OUTBOUND_WEBHOOK_URL   (your system, HMAC-signed)
 ```
 
+ElevenLabs pushes the whole finished conversation in the request body, so it needs no fetch step. It mounts at `POST /webhook/elevenlabs`, checks the signature on the raw body, maps the conversation and forwards it.
+
 See [docs/eventbridge-setup.md](docs/eventbridge-setup.md) for the Amazon
 Connect AWS-side wiring, and
 [src/adapters/genesysCloud/README.md](src/adapters/genesysCloud/README.md)
@@ -78,7 +89,9 @@ different in the documentation.
 - **It does not resolve a business account, customer identity, or anything
   domain-specific.** No platform in this space has a concept of "which
   business owns this call" beyond its own tenant. That mapping only makes
-  sense inside whatever system receives the webhook.
+  sense inside whatever system receives the webhook. The business
+  identifiers it sends are settings you provide: the RECEIVER_* settings
+  for Amazon Connect and the agent map for ElevenLabs.
 - **It does not force every vendor into the same trigger shape.** Amazon
   Connect pushes, Genesys Cloud you have to pull. The architecture reflects
   that; see `docs/adding-a-source.md`.
@@ -95,7 +108,7 @@ different in the documentation.
 npm install
 cp .env.example .env
 # edit .env: set INBOUND_API_KEY, OUTBOUND_WEBHOOK_URL, OUTBOUND_WEBHOOK_SECRET,
-# and the AMAZON_CONNECT_* variables for the sources you're using
+# and the AMAZON_CONNECT_* or ELEVENLABS_* variables for the sources you're using
 npm run build
 npm start
 ```
@@ -151,7 +164,7 @@ The bridge answers 200 right away, and the receiver prints the turns a moment la
 | `PORT` | no | `8080` | |
 | `LOG_LEVEL` | no | `info` | `debug` \| `info` \| `warn` \| `error` |
 | `INBOUND_API_KEY_HEADER` | no | `x-api-key` | Header name every push adapter checks |
-| `INBOUND_API_KEY` | yes | | Shared secret for push-triggered adapters |
+| `INBOUND_API_KEY` | when Amazon Connect is on | | Shared secret for the Amazon Connect route |
 | `OUTBOUND_WEBHOOK_URL` | yes | | Where the normalized payload is POSTed |
 | `OUTBOUND_WEBHOOK_SECRET` | yes | | Used to HMAC-sign the outbound payload |
 | `OUTBOUND_WEBHOOK_TIMEOUT_MS` | no | `5000` | |
@@ -166,6 +179,12 @@ The bridge answers 200 right away, and the receiver prints the turns a moment la
 | `AMAZON_CONNECT_CTR_RESOLVER` | no | `none` | `none` \| `s3`, see [CTR enrichment](#ctr-enrichment-optional) |
 | `AMAZON_CONNECT_CTR_S3_BUCKET` | if resolver is `s3` | | |
 | `AMAZON_CONNECT_CTR_S3_PREFIX` | no | `ContactTraceRecords/` | |
+| `ELEVENLABS_ENABLED` | no | `false` | On/off, same accepted values. Mounts `/webhook/elevenlabs` |
+| `ELEVENLABS_WEBHOOK_SECRET` | if enabled | | The signing secret of the ElevenLabs webhook |
+| `ELEVENLABS_AGENT_MAP` / `ELEVENLABS_AGENT_MAP_FILE` | one of them, if enabled | | Which business each ElevenLabs agent belongs to. Inline JSON, or the absolute path of a JSON file kept outside the repository |
+| `ELEVENLABS_CUSTOMER_PHONE_VARIABLE` | no | `customer_phone` | Name of the dynamic variable your agent fills with the customer's number |
+| `ELEVENLABS_MAX_BODY_MB` | no | `100` | Largest request body the ElevenLabs route reads. Audio deliveries are large |
+| `ELEVENLABS_FORWARD_ATTEMPTS` | no | `2` | Delivery attempts to the receiver before answering 503 |
 | `GENESYS_LOGIN_BASE_URL` / `GENESYS_API_BASE_URL` / `GENESYS_CLIENT_ID` / `GENESYS_CLIENT_SECRET` | only for the example script | | Not wired into the server, see `src/adapters/genesysCloud/README.md` |
 
 ## CTR enrichment (optional, Amazon Connect only)
@@ -191,11 +210,38 @@ If you don't need the phone number or queue at all, leave the default
 `AMAZON_CONNECT_CTR_RESOLVER=none`, the normalized payload's
 `customer_phone` and `queue` fields will just be `null`.
 
+## ElevenLabs source
+
+The bridge receives ElevenLabs' post call webhook at `POST /webhook/elevenlabs`, checks the signature with ElevenLabs' official JavaScript SDK, and forwards each finished conversation to `OUTBOUND_WEBHOOK_URL`.
+
+What it does:
+
+- **Signature.** The route reads the raw request body and checks the `ElevenLabs-Signature` header against `ELEVENLABS_WEBHOOK_SECRET`. A missing, wrong or stale signature gets 401.
+- **Request shape.** It does not use the normalized shape above. It sends one request per finished conversation in the form a receiver of finished calls expects: `customer_phone`, `waba_id`, `waba_phone`, `call_uuid`, a `conversation` list of turns with `start` and `end` in whole seconds, the call start, and a free form `raw` object. The ElevenLabs conversation id is the `call_uuid`. Agent turns are marked as AI turns. A chat is sent as inbound. A turn with no message text is skipped.
+- **Customer number.** It is taken only from fields documented as the customer's: the dynamic variable named by `ELEVENLABS_CUSTOMER_PHONE_VARIABLE`, the SMS user number, or `system__caller_id` on a call documented as inbound. The bridge never reads the transcript and never guesses between `agent_number` and `external_number`, because ElevenLabs does not say which is the customer. With no number it sends the literal `anonymous`. Where the number came from is recorded in `raw`.
+- **Replies.** The route answers 200 only after the receiver accepted the delivery. If the receiver rejects it with a 4xx, the bridge logs the conversation id and the reason and answers 200, because a retry cannot fix it. If the receiver or the network fails, the bridge answers 503 so ElevenLabs retries. The longest the route can take is `ELEVENLABS_FORWARD_ATTEMPTS` times `OUTBOUND_WEBHOOK_TIMEOUT_MS` plus 500 ms between attempts, so 10.5 seconds with the defaults.
+- **Other events.** Audio deliveries, call initiation failures and event types the bridge does not know are answered 200 after the signature check and then ignored. The route accepts bodies up to `ELEVENLABS_MAX_BODY_MB`. An unknown agent id is answered 200 with a warning.
+- **Repeats.** ElevenLabs retries resend the whole conversation. The bridge keeps no state, so the receiver must treat `call_uuid` as the duplicate key.
+
+Settings for an ElevenLabs only deployment: `AMAZON_CONNECT_ENABLED=false`, `ELEVENLABS_ENABLED=true`, the webhook secret, the agent map, and the two outbound settings. `INBOUND_API_KEY` is not needed. `/health` lists which sources are on.
+
+The agent map names each ElevenLabs agent id and the business it belongs to:
+
+```json
+{
+  "your_agent_id": { "wabaId": "your-business-id", "wabaPhone": "+15550001111" }
+}
+```
+
+Optional keys per agent are `companyId` and `agentExtension`. Keep the real map in a file outside the repository and point `ELEVENLABS_AGENT_MAP_FILE` at it.
+
+Details and the synthetic fixtures are in `src/adapters/elevenLabs/README.md` and `fixtures/elevenlabs-synthetic/`.
+
 ## Output shape
 
 The values below are illustrative.
 
-Every adapter, regardless of source, produces this. The field names for the customer, the business and the conversation (`customer_phone`, `waba_id`, `waba_phone`, `call_uuid`, `conversation`) follow the way Wappari receives a finished conversation. A receiver that wants different names only has to rename them. The field names are set in `src/ingest.ts` (where the output is built) and `src/types.ts` (its type).
+The Amazon Connect and Genesys Cloud adapters produce this. ElevenLabs sends its own request shape, see [ElevenLabs source](#elevenlabs-source). The field names for the customer, the business and the conversation (`customer_phone`, `waba_id`, `waba_phone`, `call_uuid`, `conversation`) follow the way Wappari receives a finished conversation. A receiver that wants different names only has to rename them. The field names are set in `src/ingest.ts` (where the output is built) and `src/types.ts` (its type).
 
 ```jsonc
 {
@@ -239,7 +285,7 @@ Wappari needs the customer's phone number and the business identifiers below to 
 | `conversation[].speaker`, `.text` | Who spoke (`customer` or `agent`) and what was said, in order. |
 | `country_code` | The country calling code for the customer's number. |
 
-A real Amazon Connect chat was delivered to Wappari with these fields and appeared as its own thread inside the customer's existing conversation, customer turns on one side and agent turns on the business side. To use another receiver, keep the fields it needs and rename or drop the rest.
+A real Amazon Connect chat was sent to Wappari with these fields by a one off script and appeared as its own thread inside the customer's existing conversation, customer turns on one side and agent turns on the business side. To use another receiver, keep the fields it needs and rename or drop the rest.
 
 ## Verifying the webhook signature
 

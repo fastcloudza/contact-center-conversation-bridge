@@ -52,12 +52,51 @@ Connect via EventBridge is the example). Build an Express router (see
 `src/adapters/amazonConnect/router.ts`), mount it in `src/server.ts`, done.
 This is the easy case.
 
+**Push with the conversation in the body.** Some vendors push the whole finished
+conversation in the request itself (ElevenLabs is the example, see
+`src/adapters/elevenLabs/`). There is nothing to fetch, so there is no
+`client.ts`. The router reads the body, checks who sent it, maps it and
+forwards it. Three things differ from the event style push above:
+
+1. The vendor signs the body, so the router needs the exact bytes. Mount it in
+   `src/server.ts` before the JSON parser and give it its own raw body parser.
+   The parser applies to that route only, the other routes are unchanged.
+2. The vendor decides what a reply means. Answer 200 when retrying cannot help
+   (a rejected delivery, an event you do not want) and 5xx only when a retry
+   could succeed. Say in the adapter README how long the route can take.
+3. The vendor may resend the same conversation. The bridge keeps no state, so
+   say in the README that the receiver must use the conversation id as the
+   duplicate key.
+
+The mapped result does not have to be the normalized output. If the receiver
+expects its own request shape, build that shape in the adapter's mapper and
+hand it to `forwardToWebhook`, which accepts any object that has a `call_uuid`.
+
 **Pull.** You have to ask the vendor, on a schedule or via a subscription
 (Genesys Cloud is the example, see `src/adapters/genesysCloud/README.md`
 for the two ways that can look). This means a separate long-running or
 scheduled process, not a route. Don't force this shape into a fake webhook
 route just for consistency, it'll misrepresent how the integration actually
 behaves operationally.
+
+## Checking who sent a request
+
+The Amazon Connect route compares a static key in a header. That fits EventBridge,
+which authenticates with a stored credential and does not sign payloads. Use it
+when the vendor offers nothing better.
+
+When the vendor signs the body, check the signature instead:
+
+- Prefer the vendor's own library, and say in the adapter README which version
+  was used.
+- Verify against the raw bytes, never against a parsed and re-serialized body.
+- Refuse a missing, wrong or stale signature with 401 and log only the reason.
+- Reject an obviously unsigned request before the body is read, so an unsigned
+  caller cannot make the route buffer a large body.
+- Keep the secret in settings, never in the repository, and never log it.
+- A test that signs with its own secret proves the route and the library agree.
+  It does not prove the vendor's real signature. Name the test that way, and
+  repeat the check with a real delivery when you have one.
 
 ## Steps
 
@@ -68,7 +107,8 @@ behaves operationally.
    a comment the way `genesysCloud/types.ts` does, and degrade gracefully
    in the mapper rather than asserting incorrect output.
 3. `client.ts`, however you actually talk to the vendor, auth, the request
-   that fetches a finished transcript.
+   that fetches a finished transcript. A source that pushes the conversation
+   in the body skips this step.
 4. `mapper.ts`, two functions: one turning the vendor's transcript into
    `SourceTranscript`, one turning whatever identity data you have into
    `IdentityInfo`.

@@ -1,0 +1,17 @@
+{
+  "type": "call_initiation_failure",
+  "event_timestamp": 1790000600,
+  "data": {
+    "agent_id": "synthetic_agent_001",
+    "conversation_id": "synthetic_conv_failure_001",
+    "failure_reason": "busy",
+    "metadata": {
+      "type": "sip",
+      "body": {
+        "from_number": "+12025550111",
+        "to_number": "+12025550142",
+        "sip_status_code": 486
+      }
+    }
+  }
+}
