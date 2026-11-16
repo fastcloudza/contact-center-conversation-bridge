@@ -19,6 +19,8 @@ export interface SourceTurn {
   sentiment: string | null;
   /** ISO 8601 time of the turn when the source gives clock times instead of offsets (Amazon Connect chat). */
   at?: string | null;
+  /** True when the vendor says an automated speaker produced the turn. The turn is then marked as an AI turn. */
+  automated?: boolean;
 }
 
 /** What an adapter hands the shared pipeline after fetching and mapping a
@@ -41,6 +43,14 @@ export interface IdentityInfo {
   phoneNumber: string | null;
   queueName: string | null;
   queueRef: string | null;
+  /** Where the number came from, recorded in raw. */
+  phoneSource?: string | null;
+  /** Set only when the source says which way the contact went. */
+  callDirection?: "inbound" | "outbound" | null;
+  /** Epoch seconds of the contact start, when the source knows it and the transcript has no clock times. */
+  callStartEpoch?: number | null;
+  /** Whole seconds, when the source knows it. */
+  callDurationSecs?: number | null;
 }
 
 /** One turn in the output. Only agent and customer turns are sent. */
@@ -52,12 +62,22 @@ export interface OutputTurn {
   /** ISO 8601 time, for sources that give clock times instead of offsets. */
   at: string | null;
   sentiment: string | null;
+  /** Seconds from the start of the conversation. Derived from startMs, or from at when the source gives clock times. */
+  start: number;
+  /** Seconds. Equals start when the source gives no end. */
+  end: number;
+  language: string;
+  /** "stt" for a person, "llm" for an automated speaker. */
+  source: string;
+  cut_off: boolean;
+  text_known: boolean;
 }
 
-/** The one shape the bridge sends, whatever the source. The field names for
- *  who, where and which conversation follow the way Wappari receives a
- *  finished conversation, so it connects without translation. Any receiver can
- *  use the same fields, or ignore the ones it does not need. */
+/** The one shape the bridge sends for Amazon Connect and Genesys Cloud. It
+ *  carries the bridge's own fields and the fields a receiver of finished calls
+ *  reads, under the names such a receiver uses: the customer, the business, the
+ *  conversation id, and per turn start, end, language and source. A receiver
+ *  can use the fields it needs and ignore the rest. */
 export interface NormalizedConversation {
   schemaVersion: "2.0";
   source: string; // e.g. "amazon_connect_contact_lens", "genesys_cloud_speech_text_analytics"
@@ -66,8 +86,8 @@ export interface NormalizedConversation {
   call_uuid: string;
   instance_id: string | null;
   captured_at: string;
-  /** International format, when the source can tell. */
-  customer_phone: string | null;
+  /** International format, or the literal "anonymous" when the source cannot tell. */
+  customer_phone: string;
   customer_context: { customer_name: string | null };
   /** The receiving side's identifier for the business, set in the bridge's settings. */
   waba_id: string | null;
@@ -86,4 +106,19 @@ export interface NormalizedConversation {
     ref: string | null;
   };
   raw: Record<string, unknown>;
+  /** Which way the contact went. "inbound" when the source does not say. */
+  call_direction: string;
+  /** Whole seconds, 0 when the source does not say. */
+  call_duration: number;
+  /** Epoch seconds of the start of the conversation. Left out when unknown. */
+  call_start_epoch?: number;
+  /** Not known to this bridge, sent as an empty string. */
+  agent_extension: string;
+  /** Not known to this bridge, sent as an empty string. */
+  company_id: string;
+  /** There is no recording to point at. */
+  recording_filename: string | null;
+  widget_source: string;
+  widget_token: string;
+  referring_domain: string;
 }

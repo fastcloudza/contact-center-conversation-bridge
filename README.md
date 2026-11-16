@@ -241,7 +241,7 @@ Details and the synthetic fixtures are in `src/adapters/elevenLabs/README.md` an
 
 The values below are illustrative.
 
-The Amazon Connect and Genesys Cloud adapters produce this. ElevenLabs sends its own request shape, see [ElevenLabs source](#elevenlabs-source). The field names for the customer, the business and the conversation (`customer_phone`, `waba_id`, `waba_phone`, `call_uuid`, `conversation`) follow the way Wappari receives a finished conversation. A receiver that wants different names only has to rename them. The field names are set in `src/ingest.ts` (where the output is built) and `src/types.ts` (its type).
+The Amazon Connect and Genesys Cloud adapters produce this. ElevenLabs sends its own request shape, see [ElevenLabs source](#elevenlabs-source). Besides the bridge's own fields, it carries the fields a receiver of finished calls reads, under the names such a receiver uses: `customer_phone`, `waba_id`, `waba_phone`, `call_uuid`, `call_direction`, `call_duration`, `call_start_epoch`, and per turn `start`, `end`, `language` and `source`. A receiver that wants different names only has to rename them, and one that does not need a field can ignore it. The field names are set in `src/ingest.ts` (where the output is built) and `src/types.ts` (its type).
 
 ```jsonc
 {
@@ -251,30 +251,39 @@ The Amazon Connect and Genesys Cloud adapters produce this. ElevenLabs sends its
   "call_uuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",   // the source's contact id, use it as the duplicate key
   "instance_id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
   "captured_at": "2026-09-14T12:00:00.000Z",
-  "customer_phone": "+15551234567",          // null when the source cannot tell
+  "customer_phone": "+15551234567",          // the literal "anonymous" when the source cannot tell, or the number is not 8 to 15 digits
   "customer_context": { "customer_name": null },
   "waba_id": "your-business-id",             // from RECEIVER_BUSINESS_ID
   "waba_phone": "+15550001111",              // from RECEIVER_BUSINESS_PHONE
   "country_code": "1",                       // from RECEIVER_COUNTRY_CODE
   "conversation": [
-    { "speaker": "agent", "text": "Thanks for calling, how can I help you today?", "startMs": 500, "endMs": 3200, "at": null, "sentiment": "NEUTRAL" },
-    { "speaker": "customer", "text": "I never received my refund from last week.", "startMs": 3400, "endMs": 6100, "at": null, "sentiment": "NEGATIVE" }
-    // Chat turns have "startMs": null, "endMs": null and an "at" ISO timestamp instead
+    { "speaker": "agent", "text": "Thanks for calling, how can I help you today?", "startMs": 500, "endMs": 3200, "at": null, "sentiment": "NEUTRAL", "start": 0.5, "end": 3.2, "language": "en", "source": "stt", "cut_off": false, "text_known": true },
+    { "speaker": "customer", "text": "I never received my refund from last week.", "startMs": 3400, "endMs": 6100, "at": null, "sentiment": "NEGATIVE", "start": 3.4, "end": 6.1, "language": "en", "source": "stt", "cut_off": false, "text_known": true }
+    // Chat turns have "startMs": null, "endMs": null and an "at" ISO timestamp. Their "start" is the seconds since the first message and "end" equals "start"
+    // "source" is "stt" for a person and "llm" for an automated speaker
   ],
   "skipped_turns": 0,                        // automated or unattributed lines left out of "conversation"
   "sentiment_overall": { "OverallSentiment": { "AGENT": 1.2, "CUSTOMER": -1.8 } },
   "matched_categories": ["refund-request"],
   "summary": "Customer called about a missing refund from the previous week; agent opened an investigation.",
   "queue": { "name": "Support", "ref": "arn:aws:connect:..." },
-  "raw": { "analysisS3Bucket": "your-connect-bucket", "analysisS3Key": "Analysis/Voice/..." }
+  "raw": { "analysisS3Bucket": "your-connect-bucket", "analysisS3Key": "Analysis/Voice/...", "customerPhoneSource": "contact_trace_record", "customerPhoneCandidateRejected": false },
+  "call_direction": "inbound",               // "outbound" only when the source says so
+  "call_duration": 90,                       // whole seconds, 0 when the source does not say
+  "call_start_epoch": 1789387200,            // left out when the source does not give a start time
+  "agent_extension": "", "company_id": "",   // not known to the bridge, sent empty
+  "recording_filename": null,                // there is no recording to point at
+  "widget_source": "", "widget_token": "", "referring_domain": ""
 }
 ```
 
 Only agent and customer turns are in `conversation`, in order. `waba_id`, `waba_phone` and `country_code` are not in Amazon's files. They are the receiver's own identifiers for the business, set in `.env`.
 
+Times: a turn with millisecond offsets (Amazon Connect voice, Genesys Cloud) gets `start` and `end` in seconds from them. A turn with only a clock time (Amazon Connect chat) gets `start` as the seconds since the first message, `end` equal to `start`, and `call_start_epoch` set to that first message. Amazon Connect voice takes `call_start_epoch`, `call_duration` and `call_direction` from the Contact Trace Record when CTR enrichment is on, and leaves them at their defaults when it is off. Genesys Cloud gives none of the three, so they stay at their defaults.
+
 ## Connecting it to Wappari
 
-Wappari needs the customer's phone number and the business identifiers below to place the turns in the right customer conversation. The bridge's output uses the same field names, so it fits without translation:
+Wappari needs the customer's phone number and the business identifiers below to place the turns in the right customer conversation. The bridge's output carries these fields under these names, so they need no renaming:
 
 | Bridge field | What it is for |
 |---|---|
