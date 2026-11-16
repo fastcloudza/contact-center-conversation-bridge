@@ -1,5 +1,6 @@
 import type { NormalizedSpeaker, IdentityInfo, SourceTranscript, SourceTurn } from "../../types.js";
 import type { ContactLensAnalysisJson, CtrRecord } from "./types.js";
+import { toEpochSeconds } from "../../contract.js";
 
 function mapRole(role: string | undefined): NormalizedSpeaker {
   switch ((role ?? "").trim().toUpperCase()) {
@@ -112,10 +113,24 @@ export function mapToSourceTranscript(
   };
 }
 
+/** Direction from the CTR's initiation method, only for the values that say which way the contact went. */
+function directionOf(method: string | undefined): "inbound" | "outbound" | null {
+  if (method === "INBOUND") return "inbound";
+  if (method === "OUTBOUND" || method === "EXTERNAL_OUTBOUND") return "outbound";
+  return null;
+}
+
 export function mapToIdentityInfo(ctr: CtrRecord | null): IdentityInfo {
+  const start = toEpochSeconds(ctr?.InitiationTimestamp);
+  const end = toEpochSeconds(ctr?.DisconnectTimestamp);
+  const address = ctr?.CustomerEndpoint?.Address ?? null;
   return {
-    phoneNumber: ctr?.CustomerEndpoint?.Address ?? null,
+    phoneNumber: address,
     queueName: ctr?.Queue?.Name ?? null,
     queueRef: ctr?.Queue?.Arn ?? null,
+    phoneSource: address ? "contact_trace_record" : null,
+    callDirection: directionOf(ctr?.InitiationMethod),
+    callStartEpoch: start,
+    callDurationSecs: start !== null && end !== null && end >= start ? Math.round(end - start) : null,
   };
 }

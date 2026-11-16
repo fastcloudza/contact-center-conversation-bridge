@@ -29,6 +29,14 @@ interface IdentityInfo {
 }
 ```
 
+Optional extras: an adapter can fill `IdentityInfo.phoneSource`,
+`callDirection`, `callStartEpoch` and `callDurationSecs` when its vendor knows
+them, and set `automated: true` on a turn the vendor says an automated speaker
+produced. The shared function turns these into the call fields in the output
+and applies one set of rules for times, the customer number (the literal
+`anonymous` when none is usable) and turn source, so every source looks alike
+to the receiver.
+
 Once you have both, call the one shared function every adapter converges
 on:
 

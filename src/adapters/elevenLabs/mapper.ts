@@ -1,5 +1,6 @@
 import type { AgentMap } from "../../config.js";
 import type { ElevenLabsConversationData } from "./types.js";
+import { ANONYMOUS, normalizePhone, usablePhone } from "../../contract.js";
 
 type AgentEntry = AgentMap[string];
 
@@ -50,23 +51,7 @@ export interface CustomerPhone {
   rejectedCandidate: boolean;
 }
 
-/** The placeholder sent when no customer number is known. */
-export const ANONYMOUS = "anonymous";
-
-/** Strips spaces and dashes, turns a leading 0 into +27, and otherwise adds a plus. */
-export function normalizePhone(phone: string): string {
-  let p = phone.replace(/[\s-]/g, "");
-  if (p.startsWith("0")) p = "+27" + p.slice(1);
-  if (!p.startsWith("+")) p = "+" + p;
-  return p;
-}
-
-/** A usable number has 8 to 15 digits. */
-function usable(value: unknown): string | null {
-  if (typeof value !== "string") return null;
-  const digits = value.replace(/\D/g, "");
-  return digits.length >= 8 && digits.length <= 15 ? normalizePhone(value) : null;
-}
+export { ANONYMOUS, normalizePhone };
 
 /**
  * Finds the customer's number in fields whose documented meaning is the
@@ -87,7 +72,7 @@ export function findCustomerPhone(data: ElevenLabsConversationData, variableName
   let rejectedCandidate = false;
   for (const c of candidates) {
     if (!c.allowed || c.value === undefined || c.value === null || c.value === "") continue;
-    const phone = usable(c.value);
+    const phone = usablePhone(c.value);
     if (phone) return { phone, source: c.source, rejectedCandidate };
     rejectedCandidate = true;
   }
