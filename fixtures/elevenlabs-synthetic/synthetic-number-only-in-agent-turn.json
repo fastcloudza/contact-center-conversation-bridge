@@ -1,0 +1,20 @@
+{
+  "type": "post_call_transcription",
+  "event_timestamp": 1790000400,
+  "data": {
+    "agent_id": "synthetic_agent_001",
+    "conversation_id": "synthetic_conv_agentnumber_001",
+    "status": "done",
+    "transcript": [
+      { "role": "agent", "message": "You can also reach our sales desk on +12025550199 or (202) 555 0188.", "time_in_call_secs": 0 },
+      { "role": "user", "message": "Thank you, I will call them.", "time_in_call_secs": 5 }
+    ],
+    "metadata": {
+      "start_time_unix_secs": 1790000350,
+      "call_duration_secs": 20
+    },
+    "conversation_initiation_client_data": {
+      "dynamic_variables": {}
+    }
+  }
+}

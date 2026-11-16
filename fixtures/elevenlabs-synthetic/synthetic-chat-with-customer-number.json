@@ -1,0 +1,33 @@
+{
+  "type": "post_call_transcription",
+  "event_timestamp": 1790000100,
+  "data": {
+    "agent_id": "synthetic_agent_001",
+    "agent_name": "Synthetic Website Agent",
+    "conversation_id": "synthetic_conv_chat_001",
+    "status": "done",
+    "user_id": null,
+    "transcript": [
+      { "role": "agent", "message": "Hello, how can I help you today?", "tool_calls": null, "tool_results": null, "feedback": null, "time_in_call_secs": 0, "conversation_turn_metrics": null },
+      { "role": "user", "message": "I would like a quote for solar panels.", "tool_calls": null, "tool_results": null, "feedback": null, "time_in_call_secs": 4, "conversation_turn_metrics": null },
+      { "role": "agent", "message": "Happy to help. What is the size of your roof?", "tool_calls": null, "tool_results": null, "feedback": null, "time_in_call_secs": 6, "conversation_turn_metrics": null },
+      { "role": "user", "message": "About forty square metres.", "tool_calls": null, "tool_results": null, "feedback": null, "time_in_call_secs": 11, "conversation_turn_metrics": null }
+    ],
+    "metadata": {
+      "start_time_unix_secs": 1790000000,
+      "call_duration_secs": 95,
+      "cost": 120,
+      "termination_reason": ""
+    },
+    "analysis": {
+      "call_successful": "success",
+      "transcript_summary": "Synthetic summary of a synthetic chat."
+    },
+    "conversation_initiation_client_data": {
+      "dynamic_variables": {
+        "customer_phone": "+12025550142",
+        "system__is_text_only": true
+      }
+    }
+  }
+}

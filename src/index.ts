@@ -6,7 +6,7 @@ import { buildServer } from "./server.js";
 
 const config = loadConfig();
 const logger = createLogger(config.LOG_LEVEL);
-const s3 = createS3Client(config);
+const s3 = config.AMAZON_CONNECT_ENABLED ? createS3Client(config) : undefined;
 
 const app = buildServer({ config, s3, logger });
 
@@ -15,5 +15,6 @@ app.listen(config.PORT, () => {
     port: config.PORT,
     amazonConnectEnabled: config.AMAZON_CONNECT_ENABLED,
     amazonConnectDemoMode: config.AMAZON_CONNECT_DEMO_MODE,
+    elevenLabsEnabled: config.ELEVENLABS_ENABLED,
   });
 });

@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 import { z } from "zod";
 
 const TRUE_VALUES = new Set(["true", "1", "yes", "y", "on"]);
@@ -33,12 +36,57 @@ export function envBoolean(defaultValue: boolean) {
   }, z.boolean());
 }
 
+/** A blank setting counts as unset, so a copied .env.example keeps its defaults. */
+const blankToUndefined = (v: unknown) => (typeof v === "string" && v.trim() === "" ? undefined : v);
+
+/** One ElevenLabs agent and the business identifiers sent with its conversations. */
+export const agentMapEntrySchema = z.object({
+  wabaId: z.string().min(1),
+  wabaPhone: z.string().min(1),
+  companyId: z.string().optional(),
+  agentExtension: z.string().optional(),
+});
+export const agentMapSchema = z.record(z.string().min(1), agentMapEntrySchema);
+export type AgentMap = z.infer<typeof agentMapSchema>;
+
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+
+/** Reads the agent map from inline JSON or from a file kept outside the repo. */
+export function loadAgentMap(inline: string | undefined, file: string | undefined): AgentMap {
+  if (inline && file) {
+    throw new Error("Set only one of ELEVENLABS_AGENT_MAP and ELEVENLABS_AGENT_MAP_FILE");
+  }
+  let text = inline;
+  if (file) {
+    if (!isAbsolute(file)) throw new Error("ELEVENLABS_AGENT_MAP_FILE must be an absolute path");
+    const rel = relative(repoRoot, resolve(file));
+    const outside = rel === ".." || rel.startsWith(".." + sep) || isAbsolute(rel);
+    if (!outside) {
+      throw new Error("ELEVENLABS_AGENT_MAP_FILE must point outside the repository");
+    }
+    text = readFileSync(file, "utf-8");
+  }
+  if (!text) throw new Error("ELEVENLABS_AGENT_MAP or ELEVENLABS_AGENT_MAP_FILE is required when ELEVENLABS_ENABLED is on");
+  let json: unknown;
+  try {
+    json = JSON.parse(text);
+  } catch {
+    throw new Error("The ElevenLabs agent map is not valid JSON");
+  }
+  const parsed = agentMapSchema.safeParse(json);
+  if (!parsed.success) {
+    throw new Error("The ElevenLabs agent map is not valid: " + parsed.error.issues.map((i) => i.path.join(".") + " " + i.message).join("; "));
+  }
+  return parsed.data;
+}
+
 const schema = z.object({
   PORT: z.coerce.number().int().positive().default(8080),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
 
   INBOUND_API_KEY_HEADER: z.string().min(1).default("x-api-key"),
-  INBOUND_API_KEY: z.string().min(16, "INBOUND_API_KEY must be set to a long random value"),
+  // Required only when a source that uses it is on (see loadConfig).
+  INBOUND_API_KEY: z.preprocess(blankToUndefined, z.string().min(16, "INBOUND_API_KEY must be set to a long random value").optional()),
 
   OUTBOUND_WEBHOOK_URL: z.string().url(),
   OUTBOUND_WEBHOOK_SECRET: z.string().min(16, "OUTBOUND_WEBHOOK_SECRET must be set to a long random value"),
@@ -60,6 +108,18 @@ const schema = z.object({
   AMAZON_CONNECT_CTR_RESOLVER: z.enum(["none", "s3"]).default("none"),
   AMAZON_CONNECT_CTR_S3_BUCKET: z.string().optional(),
   AMAZON_CONNECT_CTR_S3_PREFIX: z.string().default("ContactTraceRecords/"),
+
+  // ElevenLabs adapter
+  ELEVENLABS_ENABLED: envBoolean(false),
+  ELEVENLABS_WEBHOOK_SECRET: z.preprocess(blankToUndefined, z.string().min(16, "ELEVENLABS_WEBHOOK_SECRET must be the signing secret of the webhook").optional()),
+  ELEVENLABS_AGENT_MAP: z.preprocess(blankToUndefined, z.string().optional()),
+  ELEVENLABS_AGENT_MAP_FILE: z.preprocess(blankToUndefined, z.string().optional()),
+  /** Name of the dynamic variable the business fills with the customer's number. */
+  ELEVENLABS_CUSTOMER_PHONE_VARIABLE: z.preprocess(blankToUndefined, z.string().min(1).default("customer_phone")),
+  /** Largest request body the route reads, in MiB. Audio deliveries are large. */
+  ELEVENLABS_MAX_BODY_MB: z.coerce.number().int().min(1).max(512).default(100),
+  /** Delivery attempts to the receiver before answering 503. */
+  ELEVENLABS_FORWARD_ATTEMPTS: z.coerce.number().int().min(1).max(3).default(2),
 });
 
 /** The prefix setting may hold several prefixes separated by commas. */
@@ -69,6 +129,8 @@ export function analysisPrefixes(value: string): string[] {
 
 export type Config = z.infer<typeof schema> & {
   amazonConnectAwsCredentials: { accessKeyId: string; secretAccessKey: string } | undefined;
+  /** Validated agent map, empty when the ElevenLabs source is off. */
+  elevenLabsAgentMap: AgentMap;
 };
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
@@ -78,6 +140,16 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     throw new Error("AMAZON_CONNECT_CTR_S3_BUCKET is required when AMAZON_CONNECT_CTR_RESOLVER=s3");
   }
 
+  if (parsed.AMAZON_CONNECT_ENABLED && !parsed.INBOUND_API_KEY) {
+    throw new Error("INBOUND_API_KEY must be set to a long random value when AMAZON_CONNECT_ENABLED is on");
+  }
+  if (parsed.ELEVENLABS_ENABLED && !parsed.ELEVENLABS_WEBHOOK_SECRET) {
+    throw new Error("ELEVENLABS_WEBHOOK_SECRET is required when ELEVENLABS_ENABLED is on");
+  }
+  const elevenLabsAgentMap = parsed.ELEVENLABS_ENABLED
+    ? loadAgentMap(parsed.ELEVENLABS_AGENT_MAP, parsed.ELEVENLABS_AGENT_MAP_FILE)
+    : {};
+
   const amazonConnectAwsCredentials =
     parsed.AMAZON_CONNECT_AWS_ACCESS_KEY_ID && parsed.AMAZON_CONNECT_AWS_SECRET_ACCESS_KEY
       ? {
@@ -86,5 +158,5 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
         }
       : undefined;
 
-  return { ...parsed, amazonConnectAwsCredentials };
+  return { ...parsed, amazonConnectAwsCredentials, elevenLabsAgentMap };
 }

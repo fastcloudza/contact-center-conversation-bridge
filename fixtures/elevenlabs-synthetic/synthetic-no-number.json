@@ -1,0 +1,21 @@
+{
+  "type": "post_call_transcription",
+  "event_timestamp": 1790000300,
+  "data": {
+    "agent_id": "synthetic_agent_001",
+    "conversation_id": "synthetic_conv_nonumber_001",
+    "status": "done",
+    "transcript": [
+      { "role": "agent", "message": "Welcome. What can I do for you?", "time_in_call_secs": 0 },
+      { "role": "user", "message": "What are your opening hours?", "time_in_call_secs": 3 },
+      { "role": "agent", "message": "We are open from eight to five on weekdays.", "time_in_call_secs": 5 }
+    ],
+    "metadata": {
+      "start_time_unix_secs": 1790000250,
+      "call_duration_secs": 30
+    },
+    "conversation_initiation_client_data": {
+      "dynamic_variables": {}
+    }
+  }
+}

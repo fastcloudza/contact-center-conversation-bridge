@@ -1,0 +1,8 @@
+{
+  "type": "synthetic_future_event_type",
+  "event_timestamp": 1790000700,
+  "data": {
+    "agent_id": "synthetic_agent_001",
+    "conversation_id": "synthetic_conv_unknown_001"
+  }
+}

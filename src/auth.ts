@@ -21,7 +21,8 @@ export function secretsMatch(provided: string, expected: string): boolean {
 export function requireApiKey(config: Config) {
   return (req: Request, res: Response, next: NextFunction) => {
     const provided = req.header(config.INBOUND_API_KEY_HEADER);
-    if (!provided || !secretsMatch(provided, config.INBOUND_API_KEY)) {
+    const expected = config.INBOUND_API_KEY;
+    if (!provided || !expected || !secretsMatch(provided, expected)) {
       res.status(401).json({ error: "unauthorized" });
       return;
     }
